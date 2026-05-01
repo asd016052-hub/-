@@ -49,5 +49,48 @@ function deletePreset(){
   alert("釣組已刪除");
 }
 
-$("updatePresetBtn").addEventListener("click", updatePreset);
+function exportData(){
+  const data = {
+    records: load(),
+    presets: getPresets(),
+    quickNotes: quickNotes
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "fishing_backup.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function importData(file){
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+    try{
+      const data = JSON.parse(e.target.result);
+
+      if(data.records) localStorage.setItem(dataKey, JSON.stringify(data.records));
+      if(data.presets) localStorage.setItem(presetKey, JSON.stringify(data.presets));
+      if(data.quickNotes) localStorage.setItem(quickKey, JSON.stringify(data.quickNotes));
+
+      alert("還原成功！");
+      location.reload();
+    }catch{
+      alert("檔案錯誤！");
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+$("exportBtn").addEventListener("click", exportData);
+$("importBtn").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", e => {
+  if(e.target.files.length) importData(e.target.files[0]);
+});$("updatePresetBtn").addEventListener("click", updatePreset);
 $("deletePresetBtn").addEventListener("click", deletePreset);
