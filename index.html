@@ -1,5 +1,12 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/><title>釣魚日誌最終版</title><link rel="manifest" href="manifest.json"/><link rel="stylesheet" href="style.css"/><meta name="theme-color" content="#0f766e"/></head><body><header><h1>釣魚日誌</h1><p>離線可用・最終完整版</p></header><main>
-<section class="card"><h2>月份查詢</h2><p>查詢歷年同月份魚種、釣點、潮汐與最大魚。</p><select id="monthSelect"><option value="">選擇月份</option><option value="01">1月</option><option value="02">2月</option><option value="03">3月</option><option value="04">4月</option><option value="05">5月</option><option value="06">6月</option><option value="07">7月</option><option value="08">8月</option><option value="09">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select><div id="monthResult"></div><canvas id="monthChart" width="320" height="180"></canvas></section>
+<section class="card"><h2>月份查詢</h2><p>查詢歷年同月份魚種、釣點、潮汐與最大魚。</p><select id="monthSelect"><option value="">選擇月份</option><option value="01">1月</option><option value="02">2月</option><option value="03">3月</option><option value="04">4月</option><option value="05">5月</option><option value="06">6月</option><option value="07">7月</option><option value="08">8月</option><option value="09">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select><div id="monthResult"></div><canvas id="monthChart" width="320" height="180"></canvas></section><section class="card">
+  <h2>資料備份</h2>
+
+  <button type="button" id="exportBtn">📤 匯出備份</button>
+  <button type="button" id="importBtn">📥 匯入還原</button>
+
+  <input type="file" id="importFile" accept=".json" style="display:none;">
+</section>
 <section class="card"><h2>釣魚紀錄</h2><label>區域<select id="area"></select></label><label>縣市 / 島嶼<select id="city"></select></label><label>釣點<select id="spot"></select></label><label>日期<input id="date" type="date"></label><label>潮汐<select id="tide"><option>未填</option><option>滿潮</option><option>漲潮</option><option>退潮</option><option>乾潮</option><option>轉流</option></select></label>
 <details class="preset"><summary>釣組套用</summary><label>選擇釣組<select id="presetSelect"><option value="">選擇釣組</option></select></label><div class="row2"><button type="button" id="applyPresetBtn">套用</button><button type="button"
 id="savePresetBtn">儲存目前配置</button></div>  <div class="row2">
