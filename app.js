@@ -8,4 +8,46 @@ function loadQuickNotes(){try{quickNotes=JSON.parse(localStorage.getItem(quickKe
 function saveRecord(){const area=$("area").value,city=$("city").value,spot=$("spot").value;const r={id:String(Date.now()),area,city,spot,date:$("date").value||today(),tide:$("tide").value,fish:$("fish").value.trim(),count:Number($("count").value||1),weight:$("weight").value.trim(),unit:$("unit").value,weightGrams:weightToGrams($("weight").value,$("unit").value),note:$("note").value.trim(),rod:$("rod").value,reel:$("reel").value,float:$("float").value,mainLine:$("mainLine").value,leader:$("leader").value,hook:$("hook").value,bait:$("bait").value};if(!r.fish&&!r.weight&&!r.note){alert("請至少填魚種、重量或備註");return}const records=load();records.unshift(r);saveAll(records);if(navigator.vibrate)navigator.vibrate(50);const spotCount=records.filter(x=>x.area===area&&x.city===city&&x.spot===spot).length;$("saveStatus").textContent=`✅ 已儲存到 ${spot}（共 ${spotCount} 筆）`;$("saveStatus").classList.remove("hidden");resetForm();renderSpotRecords();monthSearch();setTimeout(()=>$("saveStatus").classList.add("hidden"),2200)}function resetForm(){$("date").value=today();$("tide").value="未填";$("fish").value="";$("count").value=1;$("weight").value="";$("unit").value="台斤";$("note").value="";["rod","reel","float","mainLine","leader","hook","bait"].forEach(id=>$(id).value="未填")}
 function renderSpotRecords(){const area=$("area").value,city=$("city").value,spot=$("spot").value;const records=load().filter(r=>r.area===area&&r.city===city&&r.spot===spot);const total=records.reduce((s,r)=>s+Number(r.count||1),0);const max=records.filter(r=>Number(r.weightGrams||0)>0).sort((a,b)=>b.weightGrams-a.weightGrams)[0];$("spotSummary").innerHTML=`<div class="stat-item"><b>${escapeHtml(spot)}</b><br>紀錄：${records.length} 筆｜漁獲：${total} 尾/份<br>最大魚：${max?`${escapeHtml(max.fish||"未填魚種")}｜${escapeHtml(max.weight)} ${escapeHtml(max.unit)}`:"尚無重量資料"}</div>`;$("recordList").innerHTML=records.length?records.map(r=>`<div class="record"><div class="record-title">${escapeHtml(r.date)}｜${escapeHtml(r.fish||"未填魚種")}</div><div class="meta">${escapeHtml(r.count||1)} 尾 / ${escapeHtml(r.weight||"未填")} ${escapeHtml(r.unit||"")}<br>${r.tide&&r.tide!=="未填"?`潮汐：${escapeHtml(r.tide)}<br>`:""}${r.bait&&r.bait!=="未填"?`餌料：${escapeHtml(r.bait)}<br>`:""}${gearText(r)}${r.note?`備註：${escapeHtml(r.note)}<br>`:""}</div><button class="delete" type="button" onclick="deleteRecord('${r.id}')">刪除此筆</button></div>`).join(""):"<p>此釣點尚無紀錄</p>"}function gearText(r){const rows=[];if(r.rod&&r.rod!=="未填")rows.push("釣竿："+escapeHtml(r.rod));if(r.reel&&r.reel!=="未填")rows.push("捲線器："+escapeHtml(r.reel));if(r.float&&r.float!=="未填")rows.push("浮標："+escapeHtml(r.float));if(r.mainLine&&r.mainLine!=="未填")rows.push("母線："+escapeHtml(r.mainLine));if(r.leader&&r.leader!=="未填")rows.push("子線："+escapeHtml(r.leader));if(r.hook&&r.hook!=="未填")rows.push("魚鉤："+escapeHtml(r.hook));return rows.length?rows.join("<br>")+"<br>":""}function deleteRecord(id){if(!confirm("確定刪除這筆紀錄？"))return;saveAll(load().filter(r=>r.id!==id));renderSpotRecords();monthSearch()}
 function monthSearch(){const m=$("monthSelect").value;if(!m){$("monthResult").innerHTML="";drawChart([]);return}const fishMap={},spotMap={},tideMap={};let maxFish=null;load().forEach(r=>{if(!r.date||r.date.slice(5,7)!==m)return;const count=Number(r.count||1),fish=r.fish||"未填魚種",spot=r.spot||"未填釣點",tide=r.tide||"未填潮汐";fishMap[fish]=(fishMap[fish]||0)+count;spotMap[spot]=(spotMap[spot]||0)+count;tideMap[tide]=(tideMap[tide]||0)+count;if(Number(r.weightGrams||0)>0&&(!maxFish||r.weightGrams>maxFish.weightGrams))maxFish=r});const fishList=Object.entries(fishMap).sort((a,b)=>b[1]-a[1]),spotList=Object.entries(spotMap).sort((a,b)=>b[1]-a[1]),tideList=Object.entries(tideMap).sort((a,b)=>b[1]-a[1]);$("monthResult").innerHTML=`<div class="month-item"><b>歷年 ${Number(m)} 月魚種統計</b><br>${rankText(fishList)}</div><div class="month-item"><b>歷年 ${Number(m)} 月釣點統計</b><br>${rankText(spotList)}</div><div class="month-item"><b>歷年 ${Number(m)} 月潮汐統計</b><br>${rankText(tideList)}</div><div class="month-item"><b>歷年 ${Number(m)} 月最大魚</b><br>${maxFish?`${escapeHtml(maxFish.fish||"未填魚種")}｜${escapeHtml(maxFish.weight)} ${escapeHtml(maxFish.unit)}｜${escapeHtml(maxFish.spot)}｜${escapeHtml(maxFish.tide||"未填潮汐")}`:"尚無重量資料"}</div>`;drawChart(fishList.slice(0,5))}function rankText(list){return list.length?list.map(([k,v],i)=>`${i+1}. ${escapeHtml(k)}：${v}`).join("<br>"):"此月份尚無資料"}function drawChart(entries){const c=$("monthChart"),ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);if(!entries||!entries.length)return;const max=Math.max(...entries.map(e=>e[1]),1),barW=42,gap=18,base=145;ctx.font="12px sans-serif";entries.forEach(([name,count],i)=>{const x=18+i*(barW+gap),h=(count/max)*110;ctx.fillStyle="#0f766e";ctx.fillRect(x,base-h,barW,h);ctx.fillStyle="#0f172a";ctx.fillText(String(count),x+10,base-h-6);ctx.fillText(name.slice(0,3),x,168)})}function escapeHtml(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}function escapeJs(v){return String(v).replaceAll("\\","\\\\").replaceAll("'","\\'")}
-$("saveBtn").addEventListener("click",saveRecord);$("monthSelect").addEventListener("change",monthSearch);$("applyPresetBtn").addEventListener("click",applySelectedPreset);$("savePresetBtn").addEventListener("click",savePreset);$("addNoteBtn").addEventListener("click",addCustomNote);$("date").value=today();initSelectors();resetForm();renderPresets();loadQuickNotes();renderSpotRecords();
+$("saveBtn").addEventListener("click",saveRecord);$("monthSelect").addEventListener("change",monthSearch);$("applyPresetBtn").addEventListener("click",applySelectedPreset);$("savePresetBtn").addEventListener("click",savePreset);$("addNoteBtn").addEventListener("click",addCustomNote);$("date").value=today();initSelectors();resetForm();renderPresets();loadQuickNotes();renderSpotRecords();function updatePreset(){
+  const index = $("presetSelect").value;
+  if(index === ""){
+    alert("請先選擇要修改的釣組");
+    return;
+  }
+
+  const presets = getPresets();
+  presets[index] = {
+    name: presets[index].name,
+    rod: $("rod").value,
+    reel: $("reel").value,
+    float: $("float").value,
+    mainLine: $("mainLine").value,
+    leader: $("leader").value,
+    hook: $("hook").value,
+    bait: $("bait").value
+  };
+
+  setPresets(presets);
+  renderPresets();
+  $("presetSelect").value = index;
+  alert("釣組已更新");
+}
+
+function deletePreset(){
+  const index = $("presetSelect").value;
+  if(index === ""){
+    alert("請先選擇要刪除的釣組");
+    return;
+  }
+
+  if(!confirm("確定刪除此釣組？")) return;
+
+  const presets = getPresets();
+  presets.splice(index, 1);
+  setPresets(presets);
+  renderPresets();
+  alert("釣組已刪除");
+}
+
+$("updatePresetBtn").addEventListener("click", updatePreset);
+$("deletePresetBtn").addEventListener("click", deletePreset);
