@@ -48,7 +48,6 @@ function deletePreset(){
   renderPresets();
   alert("釣組已刪除");
 }
-
 function exportData(){
   const data = {
     records: load(),
@@ -56,15 +55,17 @@ function exportData(){
     quickNotes: quickNotes
   };
 
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const blob = new Blob(
+    [JSON.stringify(data, null, 2)],
+    {type:"application/json"}
+  );
+
   const url = URL.createObjectURL(blob);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "fishing_backup.json";
-  a.click();
+  // iPhone 用這個
+  window.open(url, "_blank");
 
-  URL.revokeObjectURL(url);
+  alert("請點右上角分享 → 儲存到檔案");
 }
 
 function importData(file){
